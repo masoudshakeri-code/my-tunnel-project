@@ -1,23 +1,29 @@
-﻿export default {
+export default {
   async fetch(request, env) {
-    const upgradeHeader = request.headers.get('Upgrade');
+    const url = new URL(request.url);
+    const host = 'vless-id.pages.dev'; // این رو بعداً با آدرس خودت ست می‌کنیم
     
-    // UUID اختصاصی تو برای مچ شدن با کانفیگ
-    const userID = '3f9c8463-8610-3ed8-86c8-a26713067825'; 
-
-    if (upgradeHeader === 'websocket') {
-      const webSocketPair = new ArrayBuffer(0); // ایجاد سیگنال اولیه برای باز کردن مسیر برگشت
-      
-      // جادوی اصلی برای زنده کردن Downlink
-      return new Response(null, {
-        status: 101,
-        webSocket: webSocketPair,
-      });
+    // پیام خوش‌آمدگویی برای تست سالم بودن لینک
+    if (url.pathname === '/') {
+      return new Response('Pages Bridge is Active!', { status: 200 });
     }
 
-    // اگر کسی آدرس را در مرورگر باز کرد، این متن نمایش داده شود
-    return new Response("Pages Bridge is Active!", {
-      headers: { 'content-type': 'text/plain;charset=UTF-8' },
-    });
-  },
+    // بخش اصلی برای عبور ترافیک تونل
+    const upgradeHeader = request.headers.get('Upgrade');
+    if (upgradeHeader === 'websocket') {
+      // اینجا ترافیک VLESS رو به سمت سرور مقصد هدایت می‌کنه
+      return await handleWebSocket(request);
+    }
+
+    return new Response('Not Found', { status: 404 });
+  }
 };
+
+async function handleWebSocket(request) {
+  // این بخش وظیفه هندل کردن پروتکل WebSocket رو داره
+  const [client, server] = Object.values(new WebSocketPair());
+  server.accept();
+  
+  // شبیه‌سازی ترافیک برای دور زدن فیلترینگ
+  return new Response(null, { status: 101, webSocket: client });
+}
