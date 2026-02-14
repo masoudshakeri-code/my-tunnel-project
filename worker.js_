@@ -517,7 +517,7 @@ function stringify(arr, offset = 0) {
 	if (!isValidUUID(uuid)) {
 		throw TypeError("Stringified UUID is invalid");
 	}
-	return uuid;
+	return true;
 }
 
 
